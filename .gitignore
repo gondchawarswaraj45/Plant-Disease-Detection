@@ -1,0 +1,17 @@
+# Python
+__pycache__/
+*.pyc
+
+# Virtual environment
+venv/
+.env
+
+# ML models
+*.h5
+
+# Uploads
+app/static/uploads/*
+
+# OS
+Thumbs.db
+.DS_Store

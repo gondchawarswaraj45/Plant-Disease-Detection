@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block title %}Home | Plant Disease Detection{% endblock %}
+
+{% block content %}
+
+<!-- =========================
+     HERO SECTION
+========================= -->
+<section class="hero">
+    <h1>AI-Powered Plant Disease Detection</h1>
+
+    <p>
+        Upload a plant leaf image and let Artificial Intelligence
+        detect plant diseases instantly 🌱
+    </p>
+
+    <div class="hero-actions">
+        <a href="#upload">Analyze Leaf</a>
+        <a href="{{ url_for('diseases') }}">View Diseases</a>
+        <a href="{{ url_for('about') }}">About Project</a>
+    </div>
+</section>
+
+
+<!-- =========================
+     UPLOAD SECTION
+========================= -->
+<section id="upload">
+    <h2>Upload Leaf Image</h2>
+
+    <form
+        action="/predict"
+        method="POST"
+        enctype="multipart/form-data"
+    >
+        <input
+            type="file"
+            name="image"
+            accept="image/*"
+            required
+        >
+        <br><br>
+
+        <button type="submit">
+            Analyze Disease
+        </button>
+    </form>
+</section>
+
+
+<!-- =========================
+     HOW IT WORKS
+========================= -->
+<section>
+    <h2>How It Works</h2>
+
+    <ol>
+        <li>Upload a clear image of a plant leaf</li>
+        <li>AI analyzes the image using Deep Learning</li>
+        <li>You receive disease name and treatment advice</li>
+    </ol>
+</section>
+
+
+<!-- =========================
+     TRUST SECTION
+========================= -->
+<section>
+    <h2>Why Farmers Trust This System</h2>
+
+    <ul>
+        <li>✔ Deep Learning (CNN)</li>
+        <li>✔ Google Gemini AI explanations</li>
+        <li>✔ Fast and simple</li>
+        <li>✔ Early disease detection saves crops</li>
+    </ul>
+</section>
+
+{% endblock %}

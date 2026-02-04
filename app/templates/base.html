@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- =========================
+         META
+    ========================= -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>{% block title %}Plant Disease Detection{% endblock %}</title>
+
+    <!-- =========================
+         CSS
+    ========================= -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+
+<!-- =========================
+     NAVBAR
+========================= -->
+<header>
+    <nav>
+        <div class="logo">
+            <img src="{{ url_for('static', filename='images/crop_logo.png') }}" alt="Logo">
+            <span>Plant AI</span>
+        </div>
+
+        <div class="nav-links">
+            <a href="{{ url_for('home') }}">Home</a>
+            <a href="{{ url_for('diseases') }}">Diseases</a>
+            <a href="{{ url_for('about') }}">About</a>
+        </div>
+    </nav>
+</header>
+
+<!-- =========================
+     MAIN CONTENT
+========================= -->
+<main>
+    {% block content %}
+    {% endblock %}
+</main>
+
+<!-- =========================
+     FOOTER
+========================= -->
+<footer>
+    <p>
+        AI-powered crop disease detection using Deep Learning and Google Gemini.
+    </p>
+    <p>
+        © 2026 Plant Disease Detection | Built with ❤️ & AI
+    </p>
+</footer>
+
+</body>
+</html>

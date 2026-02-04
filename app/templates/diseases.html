@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+
+{% block title %}Common Plant Diseases | Plant Disease Detection{% endblock %}
+
+{% block content %}
+
+<section class="diseases-page">
+
+    <!-- =========================
+         PAGE HEADER
+    ========================= -->
+    <div class="diseases-header">
+        <h1>Common Plant Diseases</h1>
+        <p>
+            Learn about frequently occurring plant diseases,
+            their symptoms, and why early detection matters 🌱
+        </p>
+    </div>
+
+
+    <!-- =========================
+         DISEASE CARDS GRID
+    ========================= -->
+    <div class="disease-grid">
+
+        <!-- =========================
+             CARD 1
+        ========================= -->
+        <div class="disease-card">
+            <h2>Apple Scab</h2>
+            <p class="disease-desc">
+                A fungal disease that affects apple trees,
+                causing dark, scaly lesions on leaves and fruits.
+            </p>
+
+            <ul class="disease-points">
+                <li>🦠 Caused by fungus</li>
+                <li>🍎 Affects leaves & fruits</li>
+                <li>📉 Reduces fruit quality</li>
+            </ul>
+        </div>
+
+
+        <!-- =========================
+             CARD 2
+        ========================= -->
+        <div class="disease-card">
+            <h2>Apple Black Rot</h2>
+            <p class="disease-desc">
+                A serious disease leading to blackened fruit,
+                leaf spots, and branch cankers.
+            </p>
+
+            <ul class="disease-points">
+                <li>🦠 Fungal infection</li>
+                <li>🍏 Black, rotting fruits</li>
+                <li>🌳 Weakens the tree</li>
+            </ul>
+        </div>
+
+
+        <!-- =========================
+             CARD 3
+        ========================= -->
+        <div class="disease-card">
+            <h2>Corn Leaf Blight</h2>
+            <p class="disease-desc">
+                A common maize disease causing long,
+                grayish-green lesions on leaves.
+            </p>
+
+            <ul class="disease-points">
+                <li>🌽 Affects maize crops</li>
+                <li>🍂 Leaf damage</li>
+                <li>📉 Yield loss if untreated</li>
+            </ul>
+        </div>
+
+
+        <!-- =========================
+             CARD 4
+        ========================= -->
+        <div class="disease-card">
+            <h2>Potato Early Blight</h2>
+            <p class="disease-desc">
+                A fungal disease that causes brown spots
+                with concentric rings on potato leaves.
+            </p>
+
+            <ul class="disease-points">
+                <li>🥔 Potato plants</li>
+                <li>🍂 Early leaf fall</li>
+                <li>📉 Reduced tuber size</li>
+            </ul>
+        </div>
+
+
+        <!-- =========================
+             CARD 5
+        ========================= -->
+        <div class="disease-card">
+            <h2>Tomato Leaf Mold</h2>
+            <p class="disease-desc">
+                A greenhouse-related disease causing
+                yellow spots and mold growth on leaves.
+            </p>
+
+            <ul class="disease-points">
+                <li>🍅 Tomato crops</li>
+                <li>💧 High humidity</li>
+                <li>🌫️ Poor air circulation</li>
+            </ul>
+        </div>
+
+
+        <!-- =========================
+             CARD 6
+        ========================= -->
+        <div class="disease-card healthy-card">
+            <h2>Healthy Plant</h2>
+            <p class="disease-desc">
+                No disease detected.
+                Leaves are green, fresh, and normal.
+            </p>
+
+            <ul class="disease-points">
+                <li>✅ No visible infection</li>
+                <li>🌱 Normal growth</li>
+                <li>💚 Good plant health</li>
+            </ul>
+        </div>
+
+    </div>
+
+
+    <!-- =========================
+         CALL TO ACTION
+    ========================= -->
+    <div class="diseases-cta">
+        <h2>Not Sure What Disease It Is?</h2>
+        <p>
+            Upload a leaf image and let our AI
+            detect the disease for you instantly.
+        </p>
+
+        <a href="{{ url_for('home') }}" class="btn-primary">
+            Analyze Leaf Image
+        </a>
+    </div>
+
+</section>
+
+{% endblock %}

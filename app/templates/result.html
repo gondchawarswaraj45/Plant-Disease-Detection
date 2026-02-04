@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+
+{% block title %}Prediction Result | Plant Disease Detection{% endblock %}
+
+{% block content %}
+
+<section class="result-page">
+
+    <!-- =========================
+         ERROR HANDLING
+    ========================= -->
+    {% if error %}
+        <div class="result-error">
+            <h2>❌ Error</h2>
+            <p>{{ error }}</p>
+            <a href="{{ url_for('home') }}" class="btn-primary">
+                Go Back
+            </a>
+        </div>
+    {% else %}
+
+    <!-- =========================
+         RESULT HEADER
+    ========================= -->
+    <div class="result-header">
+        <h1>Prediction Result</h1>
+        <p>AI-based analysis of the uploaded leaf image</p>
+    </div>
+
+
+    <!-- =========================
+         RESULT GRID
+    ========================= -->
+    <div class="result-grid">
+
+        <!-- =========================
+             IMAGE PREVIEW
+        ========================= -->
+        <div class="result-image-box">
+            <h3>Uploaded Image</h3>
+            <img
+                src="{{ url_for('static', filename='uploads/' ~ image) }}"
+                alt="Uploaded Leaf Image"
+                class="result-image"
+            >
+        </div>
+
+
+        <!-- =========================
+             PREDICTION DETAILS
+        ========================= -->
+        <div class="result-details-box">
+
+            <h3>Disease Detection</h3>
+
+            <div class="prediction-row">
+                <span class="label">Detected Disease:</span>
+                <span class="value disease-name">
+                    {{ disease }}
+                </span>
+            </div>
+
+            <div class="prediction-row">
+                <span class="label">Confidence:</span>
+                <span class="value confidence-value">
+                    {{ confidence }}%
+                </span>
+            </div>
+
+            <!-- CONFIDENCE BAR -->
+            <div class="confidence-bar">
+                <div
+                    class="confidence-fill"
+                    style="width: {{ confidence }}%;"
+                ></div>
+            </div>
+
+            <p class="confidence-note">
+                Higher confidence means more reliable prediction.
+            </p>
+
+        </div>
+    </div>
+
+
+    <!-- =========================
+         AI EXPLANATION
+    ========================= -->
+    <div class="ai-explanation-box">
+        <h2>AI Explanation & Treatment Guide</h2>
+
+        <div class="ai-text">
+            {{ explanation | safe }}
+        </div>
+
+        <div class="ai-warning">
+            ⚠️ This information is AI-generated.
+            Always consult an agricultural expert before applying treatments.
+        </div>
+    </div>
+
+
+    <!-- =========================
+         ACTION BUTTONS
+    ========================= -->
+    <div class="result-actions">
+        <a href="{{ url_for('home') }}" class="btn-primary">
+            Analyze Another Image
+        </a>
+
+        <a href="{{ url_for('diseases') }}" class="btn-secondary">
+            View Common Diseases
+        </a>
+    </div>
+
+    {% endif %}
+
+</section>
+
+{% endblock %}

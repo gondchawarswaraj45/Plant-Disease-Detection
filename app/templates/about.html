@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% set page = "about" %}
+
+{% block content %}
+<h1>About This Project</h1>
+
+<p>
+This project uses Deep Learning (CNN) to detect plant diseases from leaf images.
+The trained model predicts the disease class, and Google Gemini AI provides
+human-readable explanations and treatment guidance.
+</p>
+
+<ul>
+<li>Dataset: PlantVillage + Sugarcane dataset</li>
+<li>Model: CNN (TensorFlow/Keras)</li>
+<li>Backend: Flask</li>
+<li>AI Explanation: Gemini API</li>
+</ul>
+
+<p>
+Designed for farmers, students, and agricultural researchers.
+</p>
+{% endblock %}
