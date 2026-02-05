@@ -34,7 +34,7 @@ This project uses a **Convolutional Neural Network (CNN)** to classify plant lea
 
 ## 📂 Project Structure
 
-
+```
 Plant-Disease-Detection/
 │
 ├── app/
@@ -58,7 +58,7 @@ Plant-Disease-Detection/
 ├── .gitignore
 └── README.md
 
-
+```
 
 
 ---
