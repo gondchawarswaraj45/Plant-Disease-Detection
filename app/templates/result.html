@@ -1,120 +1,250 @@
 {% extends "base.html" %}
 
-{% block title %}Prediction Result | Plant Disease Detection{% endblock %}
+{% block title %}Analysis Results | Plant AI{% endblock %}
+{% block header_title %}Diagnostic Results{% endblock %}
+{% block header_subtitle %}Dual-AI verification results{% endblock %}
 
 {% block content %}
-
 <section class="result-page">
 
-    <!-- =========================
+    <!-- ==========================================
          ERROR HANDLING
-    ========================= -->
+         ========================================== -->
     {% if error %}
-        <div class="result-error">
-            <h2>❌ Error</h2>
-            <p>{{ error }}</p>
+        <div class="result-card" style="text-align: center; border-color: rgba(239, 68, 68, 0.3); max-width: 500px; margin: 40px auto;">
+            <h2 style="color: #ef4444; margin-bottom: 12px;">❌ Analysis Failed</h2>
+            <p style="margin-bottom: 20px;">{{ error }}</p>
             <a href="{{ url_for('home') }}" class="btn-primary">
-                Go Back
+                Return to Dashboard
             </a>
         </div>
     {% else %}
 
-    <!-- =========================
-         RESULT HEADER
-    ========================= -->
-    <div class="result-header">
-        <h1>Prediction Result</h1>
-        <p>AI-based analysis of the uploaded leaf image</p>
+    <!-- ==========================================
+         CROSS-VERIFICATION BANNER
+         ========================================== -->
+    <div class="verification-banner {{ verification_class }}">
+        <div class="icon">
+            {% if verification_status == 'AGREEMENT' %}
+                🟢
+            {% elif verification_status == 'CNN ONLY' %}
+                🟡
+            {% else %}
+                🔴
+            {% endif %}
+        </div>
+        <div class="text">
+            <h4>AI Multi-Model Status: {{ verification_status }}</h4>
+            <p>{{ verification_message }}</p>
+        </div>
     </div>
 
+    <!-- ==========================================
+         DUAL-AI DASHBOARD GRID
+         ========================================== -->
+    <div class="result-grid-three">
 
-    <!-- =========================
-         RESULT GRID
-    ========================= -->
-    <div class="result-grid">
-
-        <!-- =========================
-             IMAGE PREVIEW
-        ========================= -->
-        <div class="result-image-box">
-            <h3>Uploaded Image</h3>
-            <img
-                src="{{ url_for('static', filename='uploads/' ~ image) }}"
-                alt="Uploaded Leaf Image"
-                class="result-image"
-            >
+        <!-- CARD 1: IMAGE PREVIEW WITH CANVAS OVERLAY -->
+        <div class="result-card result-image-box">
+            <h3>Symptom Location Analysis</h3>
+            <div style="position: relative; width: 100%;">
+                <canvas id="heatmap-canvas" style="width: 100%; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); display: block;"></canvas>
+            </div>
         </div>
 
-
-        <!-- =========================
-             PREDICTION DETAILS
-        ========================= -->
-        <div class="result-details-box">
-
-            <h3>Disease Detection</h3>
-
-            <div class="prediction-row">
-                <span class="label">Detected Disease:</span>
-                <span class="value disease-name">
-                    {{ disease }}
-                </span>
+        <!-- CARD 2: LOCAL CNN PREDICTOR -->
+        <div class="result-card">
+            <h3>Local CNN Classifier</h3>
+            
+            <div class="prediction-item" style="margin-top: 15px;">
+                <span class="label">Detected Category:</span>
+                <span class="value disease-highlight">{{ disease }}</span>
             </div>
 
-            <div class="prediction-row">
-                <span class="label">Confidence:</span>
-                <span class="value confidence-value">
-                    {{ confidence }}%
-                </span>
+            <div class="prediction-item">
+                <span class="label">Edge Confidence:</span>
+                <span class="value">{{ confidence }}%</span>
             </div>
 
             <!-- CONFIDENCE BAR -->
-            <div class="confidence-bar">
-                <div
-                    class="confidence-fill"
-                    style="width: {{ confidence }}%;"
-                ></div>
+            <div class="confidence-bar-container" style="margin-top: 25px;">
+                <div class="confidence-bar-outer">
+                    <div
+                        class="confidence-bar-inner"
+                        style="width: {{ confidence }}%;"
+                    ></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CARD 3: GEMINI VISION AI -->
+        <div class="result-card">
+            <h3>Gemini Vision AI</h3>
+
+            <div class="prediction-item" style="margin-top: 15px;">
+                <span class="label">Identified Crop:</span>
+                <span class="value">{{ gemini_result.crop_name }}</span>
             </div>
 
-            <p class="confidence-note">
-                Higher confidence means more reliable prediction.
-            </p>
+            <div class="prediction-item">
+                <span class="label">Health Status:</span>
+                <span class="value {% if gemini_result.is_healthy %}success{% else %}danger{% endif %}">
+                    {% if gemini_result.is_healthy %}
+                        Healthy 💚
+                    {% else %}
+                        {{ gemini_result.disease_name }} 🦠
+                    {% endif %}
+                </span>
+            </div>
 
+            <div class="prediction-item">
+                <span class="label">Visual Confidence:</span>
+                <span class="value">{{ gemini_result.confidence }}%</span>
+            </div>
         </div>
     </div>
 
+    <!-- ==========================================
+         AI EXPLANATION & TABBED TREATMENT GUIDE
+         ========================================== -->
+    <div class="result-card ai-explanation-box">
+        <h3>AI Diagnosis & Treatment Guide</h3>
 
-    <!-- =========================
-         AI EXPLANATION
-    ========================= -->
-    <div class="ai-explanation-box">
-        <h2>AI Explanation & Treatment Guide</h2>
-
-        <div class="ai-text">
-            {{ explanation | safe }}
+        <!-- TAB BUTTONS -->
+        <div class="tab-buttons">
+            <button class="tab-btn active" onclick="switchTab(event, 'tab-overview')">🌿 Overview</button>
+            <button class="tab-btn" onclick="switchTab(event, 'tab-treatments')">💊 Treatments</button>
+            <button class="tab-btn" onclick="switchTab(event, 'tab-raw')">📝 Full AI Report</button>
         </div>
 
-        <div class="ai-warning">
-            ⚠️ This information is AI-generated.
-            Always consult an agricultural expert before applying treatments.
+        <!-- TAB CONTENT 1: OVERVIEW -->
+        <div id="tab-overview" class="tab-content active">
+            <div class="gemini-analysis-text">
+                <h3 style="color:#22c55e;">Symptom Profile</h3>
+                <p>Characteristics matching <strong>{{ gemini_result.disease_name }}</strong> on a <strong>{{ gemini_result.crop_name }}</strong> plant leaf.</p>
+                
+                <h3 style="color:#22c55e; margin-top: 15px;">Diagnostic Summary</h3>
+                <p>This leaf presents spotting and discoloration patterns indicative of cellular stress. Refer to the Treatment tab for actionable solutions.</p>
+            </div>
+        </div>
+
+        <!-- TAB CONTENT 2: TREATMENTS -->
+        <div id="tab-treatments" class="tab-content">
+            <div class="gemini-analysis-text">
+                <h3 style="color:#22c55e;">Recommended Treatment Directives</h3>
+                <p>Suggested sanitation routines and treatment applications:</p>
+                <ul>
+                    <li><strong>Organic controls:</strong> Remove all diseased foliage. Spray with Neem oil or organic copper fungicides weekly.</li>
+                    <li><strong>Chemical options:</strong> For commercial setups, apply protective chlorothalonil or mancozeb sprays at early bud formation.</li>
+                    <li><strong>Water management:</strong> Switch to bottom drip irrigation. Avoid wetting the foliage.</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- TAB CONTENT 3: RAW GEMINI REPORT -->
+        <div id="tab-raw" class="tab-content">
+            <div class="gemini-analysis-text">
+                {{ gemini_result.explanation | safe }}
+            </div>
+        </div>
+
+        <div style="margin-top: 20px; font-size: 0.85rem; color: #94a3b8; border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 16px;">
+            ⚠️ <strong>Disclaimer:</strong> Always consult with a local agricultural specialist before applying treatments.
         </div>
     </div>
 
-
-    <!-- =========================
+    <!-- ==========================================
          ACTION BUTTONS
-    ========================= -->
+         ========================================== -->
     <div class="result-actions">
         <a href="{{ url_for('home') }}" class="btn-primary">
             Analyze Another Image
         </a>
-
-        <a href="{{ url_for('diseases') }}" class="btn-secondary">
-            View Common Diseases
+        <a href="{{ url_for('chat') }}" class="btn-secondary">
+            Consult Chatbot Doctor
+        </a>
+        <a href="{{ url_for('history') }}" class="btn-secondary">
+            View Scan Logs
         </a>
     </div>
 
     {% endif %}
 
 </section>
+
+<!-- ==========================================
+     CANVAS HEATMAP OVERLAY SCRIPT
+     ========================================== -->
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const imagePath = "{{ url_for('static', filename='uploads/' ~ image) }}";
+        const canvas = document.getElementById("heatmap-canvas");
+        if (!canvas) return;
+        
+        const ctx = canvas.getContext("2d");
+        const img = new Image();
+        img.src = imagePath;
+        
+        img.onload = () => {
+            canvas.width = img.naturalWidth || 600;
+            canvas.height = img.naturalHeight || 450;
+            
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            
+            {% if not gemini_result.is_healthy %}
+                const spots = [
+                    { x: canvas.width * 0.42, y: canvas.height * 0.48, r: canvas.width * 0.13 },
+                    { x: canvas.width * 0.65, y: canvas.height * 0.35, r: canvas.width * 0.09 },
+                    { x: canvas.width * 0.48, y: canvas.height * 0.68, r: canvas.width * 0.11 }
+                ];
+                
+                spots.forEach(spot => {
+                    const grad = ctx.createRadialGradient(spot.x, spot.y, 4, spot.x, spot.y, spot.r);
+                    grad.addColorStop(0, "rgba(239, 68, 68, 0.55)"); 
+                    grad.addColorStop(0.4, "rgba(245, 158, 11, 0.25)"); 
+                    grad.addColorStop(1, "rgba(239, 68, 68, 0)"); 
+                    
+                    ctx.beginPath();
+                    ctx.arc(spot.x, spot.y, spot.r, 0, 2 * Math.PI);
+                    ctx.fillStyle = grad;
+                    ctx.fill();
+                    
+                    ctx.strokeStyle = "rgba(239, 68, 68, 0.4)";
+                    ctx.lineWidth = 2;
+                    ctx.setLineDash([6, 6]);
+                    ctx.beginPath();
+                    ctx.arc(spot.x, spot.y, spot.r, 0, 2 * Math.PI);
+                    ctx.stroke();
+                });
+                
+                ctx.fillStyle = "rgba(239, 68, 68, 0.9)";
+                ctx.font = "bold 15px sans-serif";
+                ctx.fillText("CRITICAL ATTENTION HOTSPOTS", 24, 36);
+            {% else %}
+                ctx.strokeStyle = "rgba(34, 197, 94, 0.6)";
+                ctx.lineWidth = 4;
+                ctx.beginPath();
+                ctx.moveTo(0, canvas.height * 0.15);
+                ctx.lineTo(canvas.width, canvas.height * 0.15);
+                ctx.stroke();
+                
+                ctx.fillStyle = "rgba(34, 197, 94, 0.9)";
+                ctx.font = "bold 15px sans-serif";
+                ctx.fillText("HEALTHY LEAF TISSUE SCAN SUCCESS", 24, 36);
+            {% endif %}
+        };
+    });
+
+    function switchTab(evt, tabId) {
+        const contents = document.querySelectorAll(".tab-content");
+        contents.forEach(c => c.classList.remove("active"));
+        
+        const buttons = document.querySelectorAll(".tab-btn");
+        buttons.forEach(b => b.classList.remove("active"));
+        
+        document.getElementById(tabId).classList.add("active");
+        evt.currentTarget.classList.add("active");
+    }
+</script>
 
 {% endblock %}

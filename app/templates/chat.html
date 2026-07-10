@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}Plant AI Doctor Chatroom | Plant Disease Detection{% endblock %}
+
+{% block content %}
+<div class="chat-page-container">
+    <!-- SIDEBAR FOR SUGGESTED TOPICS -->
+    <aside class="chat-sidebar">
+        <h2>Plant AI Doctor</h2>
+        <p>Ask our AI expert about plant health, soil conditions, watering schedules, or organic pest solutions. You can also upload a leaf image to diagnose issues directly.</p>
+        
+        <div class="suggestions-container">
+            <button class="suggestion-chip" data-prompt="How do I treat Tomato Early Blight using organic methods?">
+                🌿 Organic Disease Cures
+            </button>
+            <button class="suggestion-chip" data-prompt="What parameters should I check to determine if my soil is healthy?">
+                💩 Soil Health Checklist
+            </button>
+            <button class="suggestion-chip" data-prompt="Calculate a watering schedule for potatoes in hot, dry weather.">
+                💧 Crop Watering Schedule
+            </button>
+            <button class="suggestion-chip" data-prompt="How can I identify and control spider mites naturally?">
+                🕷️ Pest Identification
+            </button>
+        </div>
+    </aside>
+
+    <!-- MAIN CHATROOM CONSOLE -->
+    <main class="chat-main">
+        <div class="chat-messages" id="page-chat-messages">
+            <div class="chat-message model">
+                <p>Hello! I am the <strong>Plant AI Doctor</strong>. 🌱</p>
+                <p>How can I assist you with your farming or gardening today? You can ask me questions or attach a photo of a crop leaf for diagnosis.</p>
+            </div>
+        </div>
+
+        <div class="chat-input-area">
+            <!-- IMAGE PREVIEW -->
+            <div class="image-preview-container" id="page-image-preview"></div>
+
+            <form id="page-chat-form" class="chat-input-form" enctype="multipart/form-data">
+                <!-- ATTACHMENT INPUT -->
+                <label for="page-image-input" class="chat-attach-btn" title="Attach Leaf Image">
+                    📎
+                </label>
+                <input 
+                    type="file" 
+                    id="page-image-input" 
+                    name="image" 
+                    accept="image/*" 
+                    style="display: none;"
+                >
+
+                <!-- TEXT INPUT -->
+                <input 
+                    type="text" 
+                    id="page-chat-input" 
+                    placeholder="Ask about plant care, diseases, soil..." 
+                    autocomplete="off"
+                    required
+                >
+
+                <!-- SEND BUTTON -->
+                <button type="submit" class="chat-send-btn" title="Send Message">
+                    ➔
+                </button>
+            </form>
+        </div>
+    </main>
+</div>
+{% endblock %}

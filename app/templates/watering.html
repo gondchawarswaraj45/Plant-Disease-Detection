@@ -1,0 +1,298 @@
+{% extends "base.html" %}
+
+{% block title %}Watering & Planting Scheduler | Plant AI{% endblock %}
+{% block header_title %}Watering & Planting Timetable Scheduler{% endblock %}
+{% block header_subtitle %}Calculate optimal irrigation and planting timetables based on plantation age and weather conditions{% endblock %}
+
+{% block content %}
+<div class="watering-page-container">
+    
+    <div class="soil-grid">
+        <!-- WATERING CONTROLLER -->
+        <div class="result-card">
+            <h3>Crop Environment Setup</h3>
+            <p style="margin-bottom: 15px; color: #94a3b8;">Enter weather and plantation details to calculate age-based care timetables.</p>
+            
+            <div class="soil-form">
+                <div class="form-group">
+                    <label for="water-crop">Select Crop</label>
+                    <select id="water-crop">
+                        <option value="Tomato">Tomato 🍅</option>
+                        <option value="Potato">Potato 🥔</option>
+                        <option value="Apple">Apple 🍎</option>
+                        <option value="Sugarcane">Sugarcane 🌾</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="plantation-date">Date of Plantation</label>
+                    <input type="date" id="plantation-date" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="water-weather">Current Weather Condition</label>
+                    <select id="water-weather">
+                        <option value="Hot">Hot & Sunny ☀️ (High Evaporation)</option>
+                        <option value="Mild" selected>Mild & Partly Cloudy ⛅</option>
+                        <option value="Cool">Cool / Autumn 🍂</option>
+                        <option value="Rainy">Rainy 🌧️ (Natural Hydration)</option>
+                    </select>
+                </div>
+
+                <button id="calculate-watering-btn" class="btn-primary" style="width: 100%; margin-top: 15px;">
+                    Generate Care Timetable
+                </button>
+            </div>
+        </div>
+
+        <!-- WATERING REPORT -->
+        <div class="result-card">
+            <h3>Irrigation & Care Timetable</h3>
+            
+            <div id="watering-report-empty" style="text-align: center; padding: 40px 0; color: #64748b;">
+                <div style="font-size: 3.5rem; margin-bottom: 10px;">🗓️</div>
+                <p>Click Generate to compile the plantation timetable matrix.</p>
+            </div>
+
+            <div id="watering-report-data" style="display: none;" class="soil-results">
+                <!-- CROP STATUS BADGES -->
+                <div class="ph-gauge-box" style="background: rgba(16, 185, 129, 0.08); border-color: rgba(16, 185, 129, 0.25);">
+                    <div class="ph-verdict-title" style="color: #4ade80;">Crop Growth Stage & Age</div>
+                    <div class="ph-badge-verdict" id="crop-stage-lbl" style="background: var(--accent-forest); font-size: 1rem; padding: 8px 18px;">Vegetative Phase (25 Days Old)</div>
+                </div>
+
+                <div class="ph-gauge-box" style="background: rgba(59, 130, 246, 0.08); border-color: rgba(59, 130, 246, 0.2); margin-top: 10px;">
+                    <div class="ph-verdict-title" style="color: #60a5fa;">Daily Irrigation volume</div>
+                    <div class="ph-badge-verdict" id="target-volume-lbl" style="background: #2563eb;">500 mL / stalk</div>
+                </div>
+
+                <div class="prediction-item" style="margin-top: 20px;">
+                    <span class="label">Suggested Frequency:</span>
+                    <span class="value" id="water-freq-lbl" style="color: #60a5fa;">Every 2 days</span>
+                </div>
+                
+                <div class="prediction-item">
+                    <span class="label">Priority Rating:</span>
+                    <span class="value" id="water-priority-lbl">Moderate</span>
+                </div>
+
+                <h4 style="color: #22c55e; margin-top: 20px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px;">30-Day Activity Calendar</h4>
+                <p class="confidence-note" style="margin-bottom: 12px;">Highlighted days represent irrigation events or key agricultural tasks:</p>
+                
+                <!-- CALENDAR GRID VIEW -->
+                <div class="calendar-grid" id="calendar-grid">
+                    <!-- Javascript generated grid items -->
+                </div>
+
+                <!-- DYNAMIC KEYBOARD GUIDES -->
+                <h4 style="color: #22c55e; margin-top: 25px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px;">Care Directives</h4>
+                <div class="gemini-analysis-text" id="care-directives-text" style="margin-top: 10px;">
+                    <!-- Javascript generated text guidelines -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Interactive Client-side Script -->
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const calculateBtn = document.getElementById("calculate-watering-btn");
+        const emptyBlock = document.getElementById("watering-report-empty");
+        const dataBlock = document.getElementById("watering-report-data");
+        
+        const cropSel = document.getElementById("water-crop");
+        const plantationDateInput = document.getElementById("plantation-date");
+        const weatherSel = document.getElementById("water-weather");
+
+        const cropStageLbl = document.getElementById("crop-stage-lbl");
+        const targetVolume = document.getElementById("target-volume-lbl");
+        const waterFreq = document.getElementById("water-freq-lbl");
+        const waterPriority = document.getElementById("water-priority-lbl");
+        const careDirectivesText = document.getElementById("care-directives-text");
+        
+        const calendarGrid = document.getElementById("calendar-grid");
+
+        // Set default plantation date to 20 days ago so calculations work on initial load
+        const defaultDate = new Date();
+        defaultDate.setDate(defaultDate.getDate() - 20);
+        const yyyy = defaultDate.getFullYear();
+        const mm = String(defaultDate.getMonth() + 1).padStart(2, '0');
+        const dd = String(defaultDate.getDate()).padStart(2, '0');
+        plantationDateInput.value = `${yyyy}-${mm}-${dd}`;
+
+        if (calculateBtn && emptyBlock && dataBlock) {
+            calculateBtn.addEventListener("click", () => {
+                const crop = cropSel.value;
+                const weather = weatherSel.value;
+                const plantDateStr = plantationDateInput.value;
+                
+                if (!plantDateStr) {
+                    alert("Please select a valid date of plantation.");
+                    return;
+                }
+
+                // 1. Calculate Crop Age in Days
+                const today = new Date();
+                const plantDate = new Date(plantDateStr);
+                const ageInMs = today - plantDate;
+                const ageInDays = Math.floor(ageInMs / (1000 * 60 * 60 * 24));
+
+                if (ageInDays < 0) {
+                    alert("Plantation date cannot be in the future!");
+                    return;
+                }
+
+                // 2. Classify Growth Stage based on Crop & Age
+                let stage = "";
+                if (crop === "Tomato") {
+                    if (ageInDays <= 15) stage = "Seedling Stage 🌱";
+                    else if (ageInDays <= 45) stage = "Vegetative Growth Stage 🌿";
+                    else if (ageInDays <= 80) stage = "Flowering & Fruiting Stage 🌸";
+                    else stage = "Harvest & Maturation Phase 🍅";
+                } else if (crop === "Potato") {
+                    if (ageInDays <= 20) stage = "Sprouting / Emergence 🌱";
+                    else if (ageInDays <= 50) stage = "Vegetative Growth Stage 🌿";
+                    else if (ageInDays <= 85) stage = "Tuber Initiation & Bulking 🥔";
+                    else stage = "Maturation / Harvest Phase 🥔";
+                } else if (crop === "Apple") {
+                    if (ageInDays <= 30) stage = "Early Bud Break 🌸";
+                    else if (ageInDays <= 90) stage = "Active Vegetative Growth 🌿";
+                    else stage = "Fruiting & Sugar Accumulation 🍎";
+                } else { // Sugarcane
+                    if (ageInDays <= 40) stage = "Germination Phase 🌱";
+                    else if (ageInDays <= 120) stage = "Tillering & Active Growth 🌾";
+                    else stage = "Ripening & Sugar Maturation 🌾";
+                }
+
+                cropStageLbl.textContent = `${stage} (${ageInDays} Days Old)`;
+
+                // 3. Compute Watering schedule parameters
+                let frequency = 2; // default
+                let volume = 400; // mL
+                let priority = "Normal";
+
+                if (weather === "Hot") {
+                    frequency = 1;
+                    volume += 200;
+                    priority = "High 🚨";
+                } else if (weather === "Cool") {
+                    frequency = 3;
+                    volume -= 100;
+                    priority = "Low ❄️";
+                } else if (weather === "Rainy") {
+                    frequency = 0;
+                    volume = 0;
+                    priority = "SUSPENDED (Rainfall Sufficient) 🌧️";
+                }
+
+                // Adjust based on growth stage
+                if (stage.includes("Seedling") || stage.includes("Sprouting") || stage.includes("Germination")) {
+                    if (frequency > 0) {
+                        frequency = 1; // daily misting
+                        volume = 150;
+                    }
+                } else if (stage.includes("Flowering") || stage.includes("Bulking") || stage.includes("Tuber")) {
+                    volume += 200; // high transpiration demand
+                }
+
+                // Populate labels
+                targetVolume.textContent = volume > 0 ? `${volume} mL / plant` : "0 mL";
+                waterFreq.textContent = frequency > 0 ? `Every ${frequency} day(s)` : "No manual irrigation needed";
+                waterPriority.textContent = priority;
+
+                // 4. Render Calendar (30 Days starting from Today)
+                calendarGrid.innerHTML = "";
+                const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+                for (let i = 0; i < 30; i++) {
+                    const cellDate = new Date();
+                    cellDate.setDate(today.getDate() + i);
+
+                    const cell = document.createElement("div");
+                    cell.className = "calendar-cell";
+                    
+                    const dateStr = `${monthNames[cellDate.getMonth()]} ${cellDate.getDate()}`;
+                    cell.innerHTML = `<span class="cell-num" style="font-size:0.68rem; font-weight:600;">${dateStr}</span>`;
+
+                    // Calculate plant age for this calendar cell day
+                    const cellAge = ageInDays + i;
+                    
+                    // Irrigation markings
+                    if (frequency > 0 && i % frequency === 0) {
+                        cell.classList.add("water-day");
+                        cell.setAttribute("title", `Water: ${volume}mL`);
+                    } else if (weather === "Rainy") {
+                        cell.classList.add("rain-day");
+                        cell.setAttribute("title", "Natural rain");
+                    }
+
+                    // Care tasks/activities based on cell plant age
+                    let taskText = "";
+                    if (crop === "Tomato") {
+                        if (cellAge === 7 || cellAge === 28) {
+                            taskText = "NPK";
+                            cell.style.border = "1px solid #eab308";
+                            cell.setAttribute("title", "Fertilizer Day: Apply NPK nitrogen compost.");
+                        } else if (cellAge === 14 || cellAge === 35) {
+                            taskText = "Prune";
+                            cell.style.border = "1px solid #c084fc";
+                            cell.setAttribute("title", "Pruning Day: Remove suckers and lower yellow leaves.");
+                        } else if (cellAge === 21) {
+                            taskText = "Weed";
+                            cell.style.border = "1px solid #fb7185";
+                            cell.setAttribute("title", "Weed Check: Scrape soil surface weed seedlings.");
+                        }
+                    } else if (crop === "Potato") {
+                        if (cellAge === 20 || cellAge === 45) {
+                            taskText = "Hilling";
+                            cell.style.border = "1px solid #facc15";
+                            cell.setAttribute("title", "Soil Hilling: Mound soil around stems to cover tubers.");
+                        } else if (cellAge === 30) {
+                            taskText = "NPK";
+                            cell.style.border = "1px solid #60a5fa";
+                            cell.setAttribute("title", "Fertility check.");
+                        }
+                    }
+
+                    if (taskText) {
+                        const badge = document.createElement("span");
+                        badge.style.cssText = "position:absolute; bottom:2px; font-size:0.65rem; background:rgba(255,255,255,0.12); padding:1px 4px; border-radius:4px; font-weight:700;";
+                        badge.textContent = taskText;
+                        cell.appendChild(badge);
+                    }
+
+                    calendarGrid.appendChild(cell);
+                }
+
+                // 5. Generate Care Directives Markdown report
+                let careHtml = `<ul>`;
+                if (crop === "Tomato") {
+                    careHtml += `<li><strong>Current Phase Guidance:</strong> Your Tomato plants are ${ageInDays} days old (${stage}).</li>`;
+                    if (ageInDays <= 15) {
+                        careHtml += `<li>🌱 <strong>Seedling Sprout check:</strong> Maintain shallow surface misting. Ensure 14+ hours of filtered light.</li>`;
+                    } else if (ageInDays <= 45) {
+                        careHtml += `<li>🌿 <strong>Pruning suckers:</strong> Regularly pinch off secondary branch shoots (suckers) growing in junctions between the main stem and branches. This directs energy to fruit growth.</li>`;
+                        careHtml += `<li>🍂 <strong>Trellising:</strong> Bind the central stem to stakes to support foliage weight and prevent leaf blight.</li>`;
+                    } else {
+                        careHtml += `<li>🌸 <strong>Calcium Boost:</strong> Spray soluble calcium chloride preventively to ward off Blossom End Rot.</li>`;
+                        careHtml += `<li>🍅 <strong>Water Stability:</strong> Keep soil evenly moist. Sudden dry-wet cycles cause tomato skins to crack open.</li>`;
+                    }
+                } else if (crop === "Potato") {
+                    careHtml += `<li><strong>Current Phase Guidance:</strong> Your Potato plants are ${ageInDays} days old (${stage}).</li>`;
+                    careHtml += `<li>🧱 <strong>Hilling (Ridging):</strong> Mound extra soil around the potato shoots when they reach 8 inches tall. This prevents growing potatoes from turning green and toxic in direct sun.</li>`;
+                    careHtml += `<li>💧 <strong>Tuber Initiation:</strong> During flower budding, keep soil moisture steady. Drought during bulking reduces tuber sizing significantly.</li>`;
+                } else {
+                    careHtml += `<li><strong>General Care:</strong> Continue monitoring foliar surfaces for insect egg clusters. Spray with Neem solution at early signs of leaf holes.</li>`;
+                }
+                careHtml += `</ul>`;
+                careDirectivesText.innerHTML = careHtml;
+
+                emptyBlock.style.display = "none";
+                dataBlock.style.display = "block";
+            });
+        }
+    });
+</script>
+{% endblock %}

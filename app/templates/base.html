@@ -1,59 +1,199 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <!-- =========================
-         META
-    ========================= -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>{% block title %}Plant Disease Detection{% endblock %}</title>
-
-    <!-- =========================
-         CSS
-    ========================= -->
+    <title>{% block title %}Plant AI | Crop Monitoring{% endblock %}</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- CSS Stylesheet -->
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
-
 <body>
 
-<!-- =========================
-     NAVBAR
-========================= -->
-<header>
-    <nav>
-        <div class="logo">
-            <img src="{{ url_for('static', filename='images/crop_logo.png') }}" alt="Logo">
-            <span>Plant AI</span>
+<div class="dashboard-container" id="dashboard-container">
+    <!-- ==========================================
+         COLLAPSIBLE SIDEBAR (DESKTOP)
+         ========================================== -->
+    <aside class="sidebar" id="dashboard-sidebar">
+        <div class="sidebar-brand">
+            <span class="logo-icon">🌿</span>
+            <h2>Plant AI</h2>
         </div>
-
-        <div class="nav-links">
-            <a href="{{ url_for('home') }}">Home</a>
-            <a href="{{ url_for('diseases') }}">Diseases</a>
-            <a href="{{ url_for('about') }}">About</a>
+        
+        <nav class="sidebar-menu">
+            <a href="{{ url_for('home') }}" class="menu-item {% if request.path == '/' %}active{% endif %}">
+                <span class="menu-icon">📊</span> Dashboard Home
+            </a>
+            <a href="{{ url_for('chat') }}" class="menu-item {% if request.path == '/chat' %}active{% endif %}">
+                <span class="menu-icon">💬</span> Plant Doctor Chat
+            </a>
+            <a href="{{ url_for('history') }}" class="menu-item {% if request.path == '/history' %}active{% endif %}">
+                <span class="menu-icon">📋</span> Scan History
+            </a>
+            <a href="{{ url_for('soil') }}" class="menu-item {% if request.path == '/soil' %}active{% endif %}">
+                <span class="menu-icon">💩</span> Soil Diagnostics
+            </a>
+            <a href="{{ url_for('watering') }}" class="menu-item {% if request.path == '/watering' %}active{% endif %}">
+                <span class="menu-icon">💧</span> Watering Planner
+            </a>
+            <a href="{{ url_for('diseases') }}" class="menu-item {% if request.path == '/diseases' %}active{% endif %}">
+                <span class="menu-icon">📚</span> Disease Library
+            </a>
+            <a href="{{ url_for('about') }}" class="menu-item {% if request.path == '/about' %}active{% endif %}">
+                <span class="menu-icon">ℹ️</span> About System
+            </a>
+        </nav>
+        
+        <div class="sidebar-footer">
+            <p>v1.2.0</p>
         </div>
-    </nav>
-</header>
+    </aside>
 
-<!-- =========================
-     MAIN CONTENT
-========================= -->
-<main>
-    {% block content %}
-    {% endblock %}
-</main>
+    <!-- ==========================================
+         MOBILE HEADER
+         ========================================== -->
+    <header class="mobile-header">
+        <div class="brand">
+            <span>🌿</span>
+            <h2>Plant AI</h2>
+        </div>
+        <button class="mobile-menu-toggle" id="mobile-menu-toggle" aria-label="Toggle Menu">☰</button>
+    </header>
 
-<!-- =========================
-     FOOTER
-========================= -->
-<footer>
-    <p>
-        AI-powered crop disease detection using Deep Learning and Google Gemini.
-    </p>
-    <p>
-        © 2026 Plant Disease Detection | Built with ❤️ & AI
-    </p>
-</footer>
+    <!-- MOBILE DROPDOWN MENU -->
+    <div class="mobile-nav" id="mobile-nav">
+        <a href="{{ url_for('home') }}">📊 Home</a>
+        <a href="{{ url_for('chat') }}">💬 AI Chat</a>
+        <a href="{{ url_for('history') }}">📋 History</a>
+        <a href="{{ url_for('soil') }}">💩 Soil</a>
+        <a href="{{ url_for('watering') }}">💧 Watering</a>
+        <a href="{{ url_for('diseases') }}">📚 Diseases</a>
+        <a href="{{ url_for('about') }}">ℹ️ About</a>
+    </div>
+
+    <!-- ==========================================
+         MAIN CONTENT AREA
+         ========================================== -->
+    <div class="main-content">
+        <div class="dashboard-header">
+            <div style="display: flex; align-items: center; gap: 16px;">
+                <!-- Sidebar Toggle Hamburger Button -->
+                <button class="sidebar-expand-btn" id="sidebar-expand-btn" title="Expand Sidebar">☰</button>
+                <div>
+                    <h1>{% block header_title %}Plant AI Dashboard{% endblock %}</h1>
+                    <p>{% block header_subtitle %}Crop health monitoring and diagnostics{% endblock %}</p>
+                </div>
+            </div>
+            <div class="user-profile">
+                <span class="status-indicator online"></span>
+                <span class="user-label">Farmer Portal</span>
+            </div>
+        </div>
+        
+        <div class="content-wrapper">
+            {% block content %}
+            {% endblock %}
+        </div>
+    </div>
+</div>
+
+<!-- ==========================================
+     FLOATING CHATBOT WIDGET
+     ========================================== -->
+<button id="chat-toggle-btn" class="chat-toggle-btn" title="Consult Plant Doctor">
+    💬
+</button>
+
+<div id="chat-widget" class="chat-widget">
+    <div class="chat-header">
+        <h3>🌿 Plant Doctor Console</h3>
+        <button id="close-chat-btn" class="close-btn" title="Close chat">&times;</button>
+    </div>
+    
+    <div class="chat-messages" id="widget-chat-messages">
+        <div class="chat-message model">
+            <p>Hi! I'm the <strong>Plant AI Doctor</strong>. Ask me anything or send a leaf photo to diagnose a disease.</p>
+        </div>
+    </div>
+    
+    <div class="chat-input-area">
+        <div class="image-preview-container" id="widget-image-preview"></div>
+        <form id="widget-chat-form" class="chat-input-form" enctype="multipart/form-data">
+            <label for="widget-image-input" class="chat-attach-btn" title="Attach photo">
+                📎
+            </label>
+            <input 
+                type="file" 
+                id="widget-image-input" 
+                name="image" 
+                accept="image/*" 
+                style="display: none;"
+            >
+            <input 
+                type="text" 
+                id="widget-chat-input" 
+                placeholder="Ask the doctor..." 
+                autocomplete="off"
+                required
+            >
+            <button type="submit" class="chat-send-btn">➔</button>
+        </form>
+    </div>
+</div>
+
+<!-- JavaScripts -->
+<script src="{{ url_for('static', filename='chat.js') }}"></script>
+<script>
+    // Collapsible Sidebar state controller
+    const dbContainer = document.getElementById("dashboard-container");
+    const expandBtn = document.getElementById("sidebar-expand-btn");
+
+    // Sidebar Hover Expand/Collapse triggers
+    const sidebarEl = document.getElementById("dashboard-sidebar");
+
+    // Left edge trigger zone to catch mouse movement when collapsed
+    const edgeTrigger = document.createElement("div");
+    edgeTrigger.className = "sidebar-hover-trigger";
+    edgeTrigger.style.cssText = "position: fixed; left: 0; top: 0; width: 20px; height: 100vh; z-index: 99; background: transparent;";
+    document.body.appendChild(edgeTrigger);
+
+    if (sidebarEl && dbContainer) {
+        // Toggle on hamburger click
+        if (expandBtn) {
+            expandBtn.addEventListener("click", (e) => {
+                e.stopPropagation();
+                dbContainer.classList.toggle("sidebar-open");
+            });
+        }
+
+        // Expand on hover
+        sidebarEl.addEventListener("mouseenter", () => {
+            dbContainer.classList.add("sidebar-open");
+        });
+        edgeTrigger.addEventListener("mouseenter", () => {
+            dbContainer.classList.add("sidebar-open");
+        });
+
+        // Collapse when mouse leaves
+        sidebarEl.addEventListener("mouseleave", () => {
+            dbContainer.classList.remove("sidebar-open");
+        });
+    }
+
+    // Mobile menu toggle
+    const toggle = document.getElementById("mobile-menu-toggle");
+    const nav = document.getElementById("mobile-nav");
+    if(toggle && nav) {
+        toggle.addEventListener("click", () => {
+            nav.classList.toggle("active");
+        });
+    }
+</script>
 
 </body>
 </html>

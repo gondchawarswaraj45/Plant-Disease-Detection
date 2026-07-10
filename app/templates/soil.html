@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+
+{% block title %}Soil Diagnostics | Plant AI{% endblock %}
+{% block header_title %}Soil Health Advisor{% endblock %}
+{% block header_subtitle %}Analyze soil acidity, structure, and crop compatibility reports{% endblock %}
+
+{% block content %}
+<div class="soil-page-container">
+    
+    <div class="soil-grid">
+        <!-- DIAGNOSTIC WIZARD FORM -->
+        <div class="result-card">
+            <h3>Soil Parameter Wizard</h3>
+            <p style="margin-bottom: 15px; color: #94a3b8;">Enter details below to compute soil composition verdicts and organic remediation guides.</p>
+            
+            <form action="/soil" method="POST" class="soil-form">
+                <div class="form-group">
+                    <label for="crop_type">Target Crop Type</label>
+                    <select name="crop_type" id="crop_type" required>
+                        <option value="Tomato">Tomato 🍅</option>
+                        <option value="Potato">Potato 🥔</option>
+                        <option value="Apple">Apple 🍎</option>
+                        <option value="Sugarcane">Sugarcane 🌾</option>
+                        <option value="General">General Gardening 🌱</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="soil_type">Soil Classification</label>
+                    <select name="soil_type" id="soil_type" required>
+                        <option value="Loam">Loamy (Balanced) 🪵</option>
+                        <option value="Clay">Clay (Heavy, High moisture) 🧱</option>
+                        <option value="Sandy">Sandy (Light, Dry) 🏖️</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="ph_level">Measured Soil pH: <span id="ph-val-label">7.0</span></label>
+                    <input 
+                        type="range" 
+                        name="ph_level" 
+                        id="ph_level" 
+                        min="3.0" 
+                        max="10.0" 
+                        step="0.1" 
+                        value="7.0"
+                    >
+                    <div class="ph-scale-labels">
+                        <span style="color:#ef4444;">Acidic (3)</span>
+                        <span style="color:#22c55e;">Neutral (7)</span>
+                        <span style="color:#3b82f6;">Alkaline (10)</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Moisture Content</label>
+                    <div class="radio-group">
+                        <label class="radio-lbl">
+                            <input type="radio" name="moisture_level" value="Low"> Dry 🏜️
+                        </label>
+                        <label class="radio-lbl">
+                            <input type="radio" name="moisture_level" value="Medium" checked> Optimal 🌧️
+                        </label>
+                        <label class="radio-lbl">
+                            <input type="radio" name="moisture_level" value="High"> Wet 🌊
+                        </label>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-primary" style="margin-top: 15px; width: 100%;">
+                    Analyze Soil Composition
+                </button>
+            </form>
+        </div>
+
+        <!-- DIAGNOSTIC OUTCOMES (IF SUBMITTED) -->
+        <div class="result-card">
+            <h3>Diagnostic Outcomes</h3>
+            {% if not result %}
+                <div style="text-align: center; padding: 40px 0; color: #64748b;">
+                    <div style="font-size: 3.5rem; margin-bottom: 10px;">🧪</div>
+                    <p>Enter parameters on the left to launch the diagnostics engine.</p>
+                </div>
+            {% else %}
+                <div class="soil-results">
+                    <div class="ph-gauge-box">
+                        <div class="ph-verdict-title">Soil Acidity: <strong>{{ result.ph }} pH</strong></div>
+                        <div class="ph-badge-verdict">{{ result.verdict }}</div>
+                    </div>
+                    
+                    <div class="prediction-item" style="margin-top: 20px;">
+                        <span class="label">Target Crop:</span>
+                        <span class="value">{{ result.crop_type }}</span>
+                    </div>
+                    <div class="prediction-item">
+                        <span class="label">Soil Type:</span>
+                        <span class="value">{{ result.soil_type }}</span>
+                    </div>
+                    <div class="prediction-item">
+                        <span class="label">Moisture:</span>
+                        <span class="value">{{ result.moisture }}</span>
+                    </div>
+                    
+                    <h4 style="color: #22c55e; margin-top: 20px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px;">Agronomist Directives</h4>
+                    <div class="gemini-analysis-text" style="margin-top: 10px;">
+                        <ul>
+                            {% for rec in result.recommendations %}
+                                <li style="margin-bottom: 6px;">{{ rec }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- PREVIOUS REPORTS TABLE -->
+    {% if reports %}
+        <div class="result-card" style="margin-top: 25px;">
+            <h3>Past Soil Diagnostic Logs</h3>
+            <div class="reports-table-wrapper" style="overflow-x: auto;">
+                <table class="reports-table">
+                    <thead>
+                        <tr>
+                            <th>Crop</th>
+                            <th>Soil Type</th>
+                            <th>pH</th>
+                            <th>Moisture</th>
+                            <th>Verdict</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for rep in reports %}
+                            <tr>
+                                <td>{{ rep.crop_type }}</td>
+                                <td>{{ rep.soil_type }}</td>
+                                <td>{{ rep.ph_level }}</td>
+                                <td>{{ rep.moisture_level }}</td>
+                                <td>{{ rep.verdict }}</td>
+                                <td>{{ rep.created_at }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    {% endif %}
+
+</div>
+
+<script>
+    // Live pH value slider label update
+    const slider = document.getElementById("ph_level");
+    const label = document.getElementById("ph-val-label");
+    if(slider && label) {
+        slider.addEventListener("input", (e) => {
+            label.textContent = e.target.value;
+        });
+    }
+</script>
+{% endblock %}

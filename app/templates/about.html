@@ -1,23 +1,119 @@
 {% extends "base.html" %}
-{% set page = "about" %}
+
+{% block title %}About & Guide | Plant AI{% endblock %}
+{% block header_title %}System Info & User Guide{% endblock %}
+{% block header_subtitle %}Overview of grower diagnostics and step-by-step operating instructions{% endblock %}
 
 {% block content %}
-<h1>About This Project</h1>
+<div style="display: flex; flex-direction: column; gap: 30px; max-width: 800px; margin: 0 auto;">
 
-<p>
-This project uses Deep Learning (CNN) to detect plant diseases from leaf images.
-The trained model predicts the disease class, and Google Gemini AI provides
-human-readable explanations and treatment guidance.
-</p>
+    <!-- MISSION & SYSTEM OVERVIEW -->
+    <div class="result-card" style="gap: 20px;">
+        <h3>Our Mission</h3>
+        <p style="color: var(--text-secondary); line-height: 1.6;">
+            Plant AI is a diagnostic support tool designed to assist growers, gardeners, and agronomists with crop health management. By combining instant leaf scanners with live AI consultations, we aim to make crop disease identification accessible, fast, and actionable.
+        </p>
+        
+        <h4 style="color:#22c55e; border-bottom:1px solid rgba(255,255,255,0.05); padding-bottom:8px; margin-top: 15px;">Key Features</h4>
+        <div class="prediction-item">
+            <span class="label">🔍 Leaf Diagnostics:</span>
+            <span class="value" style="color: var(--text-secondary);">Upload leaf images or use the camera lens to analyze foliar spotting, discoloration, or tissue stress.</span>
+        </div>
+        <div class="prediction-item">
+            <span class="label">💬 AI Plant Doctor:</span>
+            <span class="value" style="color: var(--text-secondary);">Consult the chatbot agronomist for customized remedies, organic recipes, and preventative suggestions.</span>
+        </div>
+        <div class="prediction-item">
+            <span class="label">💧 Watering Planner:</span>
+            <span class="value" style="color: var(--text-secondary);">Schedule crop irrigation based on plantation date, growth stages, and current weather conditions.</span>
+        </div>
+        <div class="prediction-item">
+            <span class="label">💩 Soil Conditioning:</span>
+            <span class="value" style="color: var(--text-secondary);">Analyze soil pH levels and get recommendations for agricultural lime or sulfur treatments.</span>
+        </div>
+    </div>
 
-<ul>
-<li>Dataset: PlantVillage + Sugarcane dataset</li>
-<li>Model: CNN (TensorFlow/Keras)</li>
-<li>Backend: Flask</li>
-<li>AI Explanation: Gemini API</li>
-</ul>
+    <!-- HOW TO USE MANUAL (INTEGRATED DIRECTLY IN ABOUT SECTION) -->
+    <div class="result-card">
+        <h3>❓ Interactive Operating Guide</h3>
+        <p style="color: var(--text-secondary); margin-bottom: 20px;">Select a tab below to read step-by-step operational instructions for each tool:</p>
 
-<p>
-Designed for farmers, students, and agricultural researchers.
-</p>
+        <!-- TAB BUTTONS -->
+        <div class="tab-buttons" style="margin-bottom: 20px;">
+            <button class="tab-btn active" id="help-tab-scan-btn">🩺 Leaf Scan</button>
+            <button class="tab-btn" id="help-tab-chat-btn">💬 Chatbot</button>
+            <button class="tab-btn" id="help-tab-tools-btn">🧪 Soil & Water</button>
+        </div>
+        
+        <!-- TAB CONTENT 1: LEAF SCAN -->
+        <div id="help-tab-scan" class="tab-content active">
+            <div class="gemini-analysis-text">
+                <h4 style="color:#10b981; margin-bottom: 10px;">🩺 Running Leaf Diagnostics</h4>
+                <p>Identify crop diseases instantly using camera snapshots or image uploads.</p>
+                <ol style="margin-top: 12px; padding-left: 20px; color: var(--text-secondary); line-height: 1.6;">
+                    <li style="margin-bottom: 8px;">Go to the <strong>Dashboard Home</strong>.</li>
+                    <li style="margin-bottom: 8px;">Upload a leaf photo or click <strong>Open Live Camera Lens</strong> to snap a photo from your camera.</li>
+                    <li style="margin-bottom: 8px;">Review the comparative classification results, organic remedies, and chemical treatment guidelines.</li>
+                </ol>
+            </div>
+        </div>
+        
+        <!-- TAB CONTENT 2: CHATBOT -->
+        <div id="help-tab-chat" class="tab-content">
+            <div class="gemini-analysis-text">
+                <h4 style="color:#10b981; margin-bottom: 10px;">💬 AI Plant Doctor</h4>
+                <p>Consult our agronomist chatbot for gardening help, crop nutrition, and pest controls.</p>
+                <ul style="margin-top: 12px; padding-left: 20px; list-style-type: disc; color: var(--text-secondary); line-height: 1.6;">
+                    <li style="margin-bottom: 8px;">Click the floating <strong>💬 Chat Toggle</strong> or open the <strong>Plant Doctor Chat</strong> sidebar link.</li>
+                    <li style="margin-bottom: 8px;">Ask any question about gardening, weeds, or fertilizers. You can attach a leaf photo for visual diagnosis.</li>
+                </ul>
+            </div>
+        </div>
+        
+        <!-- TAB CONTENT 3: TOOLS -->
+        <div id="help-tab-tools" class="tab-content">
+            <div class="gemini-analysis-text">
+                <h4 style="color:#10b981; margin-bottom: 10px;">🧪 Soil & Irrigation Tools</h4>
+                <p>Plan watering volumes and calculate soil neutralizing additives.</p>
+                <ul style="margin-top: 12px; padding-left: 20px; list-style-type: disc; color: var(--text-secondary); line-height: 1.6;">
+                    <li style="margin-bottom: 8px;"><strong>Soil Diagnostics</strong>: Enter soil parameters and pH to get neutralizing recommendations.</li>
+                    <li style="margin-bottom: 8px;"><strong>Watering Planner</strong>: Select crop and plantation date to compile a customized 30-day watering calendar.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- SAFETY DISCLOSURE -->
+    <div class="result-card" style="border-left: 4px solid #ef4444; background: rgba(239, 68, 68, 0.03);">
+        <h4 style="color: #ef4444; margin-bottom: 8px;">⚠️ Field Safety Notice</h4>
+        <p style="color: var(--text-secondary); font-size: 0.95rem; line-height: 1.6;">
+            Always verify diagnostic evaluations with a local agricultural extension office or certified specialist before executing extensive pesticide spray plans or commercial crop transformations.
+        </p>
+    </div>
+
+</div>
+
+<!-- Interactive tab switcher script -->
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const hTabScanBtn = document.getElementById("help-tab-scan-btn");
+        const hTabChatBtn = document.getElementById("help-tab-chat-btn");
+        const hTabToolsBtn = document.getElementById("help-tab-tools-btn");
+        
+        const hTabScan = document.getElementById("help-tab-scan");
+        const hTabChat = document.getElementById("help-tab-chat");
+        const hTabTools = document.getElementById("help-tab-tools");
+
+        function switchHelpTab(activeBtn, activeTab) {
+            [hTabScanBtn, hTabChatBtn, hTabToolsBtn].forEach(b => { if(b) b.classList.remove("active"); });
+            [hTabScan, hTabChat, hTabTools].forEach(t => { if(t) t.classList.remove("active"); });
+            if(activeBtn) activeBtn.classList.add("active");
+            if(activeTab) activeTab.classList.add("active");
+        }
+
+        if(hTabScanBtn) hTabScanBtn.addEventListener("click", () => switchHelpTab(hTabScanBtn, hTabScan));
+        if(hTabChatBtn) hTabChatBtn.addEventListener("click", () => switchHelpTab(hTabChatBtn, hTabChat));
+        if(hTabToolsBtn) hTabToolsBtn.addEventListener("click", () => switchHelpTab(hTabToolsBtn, hTabTools));
+    });
+</script>
 {% endblock %}

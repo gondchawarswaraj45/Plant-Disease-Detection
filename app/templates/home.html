@@ -1,80 +1,110 @@
 {% extends "base.html" %}
 
-{% block title %}Home | Plant Disease Detection{% endblock %}
+{% block title %}Dashboard Home | Plant AI{% endblock %}
+{% block header_title %}Leaf Diagnostics Control Center{% endblock %}
+{% block header_subtitle %}Analyze leaf health and query agronomist recommendations{% endblock %}
 
 {% block content %}
 
-<!-- =========================
-     HERO SECTION
-========================= -->
-<section class="hero">
-    <h1>AI-Powered Plant Disease Detection</h1>
 
-    <p>
-        Upload a plant leaf image and let Artificial Intelligence
-        detect plant diseases instantly 🌱
-    </p>
 
-    <div class="hero-actions">
-        <a href="#upload">Analyze Leaf</a>
-        <a href="{{ url_for('diseases') }}">View Diseases</a>
-        <a href="{{ url_for('about') }}">About Project</a>
+<!-- ==========================================
+     MAIN ANALYZER CONSOLE
+     ========================================== -->
+<div class="analyzer-console">
+    <!-- FILE UPLOAD INTERFACE -->
+    <div class="upload-container" id="upload-container">
+        <div class="upload-dropzone" id="drop-zone">
+            <span class="upload-icon">📤</span>
+            <h3>Drag & Drop Leaf Photo</h3>
+            <p>Supports PNG, JPG, or JPEG formats (max 10MB)</p>
+            <div class="divider"><span>OR</span></div>
+            
+            <form action="/predict" method="POST" enctype="multipart/form-data">
+                <label for="file-upload-input" class="btn-primary-choose">
+                    Select Image File
+                </label>
+                <input 
+                    type="file" 
+                    id="file-upload-input" 
+                    name="image" 
+                    accept="image/*" 
+                    required 
+                    style="display: none;"
+                >
+                <br><br>
+                <button type="submit" class="btn-primary analyze-submit-btn">
+                    Run AI Diagnostics
+                </button>
+            </form>
+            
+            <div class="divider" style="margin-top: 25px;"><span>OR USE CAMERA</span></div>
+            <button id="start-camera-btn" class="btn-secondary" style="width: 100%; max-width: 250px;">
+                📷 Open Live Camera Lens
+            </button>
+        </div>
     </div>
-</section>
 
+    <!-- LIVE WEBCAM DIAGNOSTICS CONTAINER (HIDDEN BY DEFAULT) -->
+    <div class="camera-container" id="camera-container" style="display: none;">
+        <h3>Live Camera Diagnostics</h3>
+        <p>Position the crop leaf within the camera frame below and click Capture.</p>
+        
+        <div class="video-wrapper">
+            <video id="video-stream" autoplay playsinline></video>
+            <div class="camera-overlay-frame"></div>
+        </div>
+        
+        <div class="camera-controls">
+            <button id="capture-frame-btn" class="btn-primary">
+                📸 Capture & Analyze
+            </button>
+            <button id="stop-camera-btn" class="btn-secondary">
+                ❌ Cancel Camera
+            </button>
+        </div>
+        
+        <div id="camera-status-console" class="console-log info">
+            Waiting for camera initialization...
+        </div>
+    </div>
+</div>
 
-<!-- =========================
-     UPLOAD SECTION
-========================= -->
-<section id="upload">
-    <h2>Upload Leaf Image</h2>
+<!-- Load Camera Script -->
+<script src="{{ url_for('static', filename='camera.js') }}"></script>
+<script>
+    // Drag & Drop visual indicators
+    const dropZone = document.getElementById("drop-zone");
+    const fileInput = document.getElementById("file-upload-input");
 
-    <form
-        action="/predict"
-        method="POST"
-        enctype="multipart/form-data"
-    >
-        <input
-            type="file"
-            name="image"
-            accept="image/*"
-            required
-        >
-        <br><br>
+    if (dropZone && fileInput) {
+        dropZone.addEventListener("dragover", (e) => {
+            e.preventDefault();
+            dropZone.classList.add("dragover");
+        });
 
-        <button type="submit">
-            Analyze Disease
-        </button>
-    </form>
-</section>
+        dropZone.addEventListener("dragleave", () => {
+            dropZone.classList.remove("dragover");
+        });
 
+        dropZone.addEventListener("drop", (e) => {
+            e.preventDefault();
+            dropZone.classList.remove("dragover");
+            if (e.dataTransfer.files.length) {
+                fileInput.files = e.dataTransfer.files;
+                // Update choose button text
+                const label = document.querySelector(".btn-primary-choose");
+                if (label) label.textContent = e.dataTransfer.files[0].name;
+            }
+        });
 
-<!-- =========================
-     HOW IT WORKS
-========================= -->
-<section>
-    <h2>How It Works</h2>
-
-    <ol>
-        <li>Upload a clear image of a plant leaf</li>
-        <li>AI analyzes the image using Deep Learning</li>
-        <li>You receive disease name and treatment advice</li>
-    </ol>
-</section>
-
-
-<!-- =========================
-     TRUST SECTION
-========================= -->
-<section>
-    <h2>Why Farmers Trust This System</h2>
-
-    <ul>
-        <li>✔ Deep Learning (CNN)</li>
-        <li>✔ Google Gemini AI explanations</li>
-        <li>✔ Fast and simple</li>
-        <li>✔ Early disease detection saves crops</li>
-    </ul>
-</section>
+        fileInput.addEventListener("change", () => {
+            if (fileInput.files.length) {
+                const label = document.querySelector(".btn-primary-choose");
+                if (label) label.textContent = fileInput.files[0].name;
+            }
+        });
+    }
+</script>
 
 {% endblock %}

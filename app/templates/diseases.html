@@ -1,153 +1,193 @@
 {% extends "base.html" %}
 
-{% block title %}Common Plant Diseases | Plant Disease Detection{% endblock %}
+{% block title %}Common Plant Diseases | Plant AI{% endblock %}
+{% block header_title %}Crop Disease Library{% endblock %}
+{% block header_subtitle %}Browse diagnosed crop diseases, leaf symptoms, and organic/chemical treatments{% endblock %}
 
 {% block content %}
-
 <section class="diseases-page">
 
-    <!-- =========================
-         PAGE HEADER
-    ========================= -->
-    <div class="diseases-header">
-        <h1>Common Plant Diseases</h1>
-        <p>
-            Learn about frequently occurring plant diseases,
-            their symptoms, and why early detection matters 🌱
-        </p>
+    <!-- ==========================================
+         SEARCH INTERFACE
+         ========================================== -->
+    <div class="library-search-container" style="margin-bottom: 30px; animation: fadeInUp 0.5s ease both;">
+        <input 
+            type="text" 
+            id="library-search" 
+            placeholder="🔍 Search reference library by crop family, disease name, or leaf symptoms..." 
+            style="width: 100%; padding: 14px 20px; border-radius: 14px; border: 1px solid var(--glass-border); background: var(--glass-bg); color: white; font-family: inherit; font-size: 1rem; outline: none; transition: all 0.25s;"
+        >
     </div>
 
-
-    <!-- =========================
+    <!-- ==========================================
          DISEASE CARDS GRID
-    ========================= -->
+         ========================================== -->
     <div class="disease-grid">
+        {% for dis in diseases %}
+            <div 
+                class="disease-card {% if dis.disease_name == 'Healthy' %}healthy-card{% endif %}"
+                data-crop="{{ dis.crop }}"
+                data-disease-name="{{ dis.disease_name }}"
+                data-overview="{{ dis.overview }}"
+                data-symptoms="{{ dis.symptoms }}"
+                data-causes="{{ dis.causes }}"
+                data-organic="{{ dis.treatment_organic }}"
+                data-chemical="{{ dis.treatment_chemical }}"
+                data-prevention="{{ dis.prevention }}"
+            >
+                <h2>{{ dis.crop }} — {{ dis.disease_name }}</h2>
+                <p class="disease-desc">
+                    {{ dis.overview }}
+                </p>
 
-        <!-- =========================
-             CARD 1
-        ========================= -->
-        <div class="disease-card">
-            <h2>Apple Scab</h2>
-            <p class="disease-desc">
-                A fungal disease that affects apple trees,
-                causing dark, scaly lesions on leaves and fruits.
-            </p>
-
-            <ul class="disease-points">
-                <li>🦠 Caused by fungus</li>
-                <li>🍎 Affects leaves & fruits</li>
-                <li>📉 Reduces fruit quality</li>
-            </ul>
-        </div>
-
-
-        <!-- =========================
-             CARD 2
-        ========================= -->
-        <div class="disease-card">
-            <h2>Apple Black Rot</h2>
-            <p class="disease-desc">
-                A serious disease leading to blackened fruit,
-                leaf spots, and branch cankers.
-            </p>
-
-            <ul class="disease-points">
-                <li>🦠 Fungal infection</li>
-                <li>🍏 Black, rotting fruits</li>
-                <li>🌳 Weakens the tree</li>
-            </ul>
-        </div>
-
-
-        <!-- =========================
-             CARD 3
-        ========================= -->
-        <div class="disease-card">
-            <h2>Corn Leaf Blight</h2>
-            <p class="disease-desc">
-                A common maize disease causing long,
-                grayish-green lesions on leaves.
-            </p>
-
-            <ul class="disease-points">
-                <li>🌽 Affects maize crops</li>
-                <li>🍂 Leaf damage</li>
-                <li>📉 Yield loss if untreated</li>
-            </ul>
-        </div>
-
-
-        <!-- =========================
-             CARD 4
-        ========================= -->
-        <div class="disease-card">
-            <h2>Potato Early Blight</h2>
-            <p class="disease-desc">
-                A fungal disease that causes brown spots
-                with concentric rings on potato leaves.
-            </p>
-
-            <ul class="disease-points">
-                <li>🥔 Potato plants</li>
-                <li>🍂 Early leaf fall</li>
-                <li>📉 Reduced tuber size</li>
-            </ul>
-        </div>
-
-
-        <!-- =========================
-             CARD 5
-        ========================= -->
-        <div class="disease-card">
-            <h2>Tomato Leaf Mold</h2>
-            <p class="disease-desc">
-                A greenhouse-related disease causing
-                yellow spots and mold growth on leaves.
-            </p>
-
-            <ul class="disease-points">
-                <li>🍅 Tomato crops</li>
-                <li>💧 High humidity</li>
-                <li>🌫️ Poor air circulation</li>
-            </ul>
-        </div>
-
-
-        <!-- =========================
-             CARD 6
-        ========================= -->
-        <div class="disease-card healthy-card">
-            <h2>Healthy Plant</h2>
-            <p class="disease-desc">
-                No disease detected.
-                Leaves are green, fresh, and normal.
-            </p>
-
-            <ul class="disease-points">
-                <li>✅ No visible infection</li>
-                <li>🌱 Normal growth</li>
-                <li>💚 Good plant health</li>
-            </ul>
-        </div>
-
+                <ul class="disease-points">
+                    <li>🦠 <strong>Causes:</strong> {{ dis.causes }}</li>
+                    <li>🔍 <strong>Symptoms:</strong> {{ dis.symptoms }}</li>
+                </ul>
+                <div style="font-size: 0.8rem; color: var(--accent-emerald); font-weight: 600; text-align: right; margin-top: auto; padding-top: 10px;">
+                    Click for Full Agronomist Report ➔
+                </div>
+            </div>
+        {% endfor %}
     </div>
 
-
-    <!-- =========================
+    <!-- ==========================================
          CALL TO ACTION
-    ========================= -->
-    <div class="diseases-cta">
-        <h2>Not Sure What Disease It Is?</h2>
+         ========================================== -->
+    <div class="diseases-cta" style="margin-top: 40px;">
+        <h2>Unsure of your Crop's Health?</h2>
         <p>
-            Upload a leaf image and let our AI
-            detect the disease for you instantly.
+            Capture a live leaf image or upload a photograph and let our Multi-AI verify the diagnostics.
         </p>
 
         <a href="{{ url_for('home') }}" class="btn-primary">
-            Analyze Leaf Image
+            Launch AI Scan
         </a>
     </div>
 
 </section>
 
+<!-- ==========================================
+     DISEASE DETAIL MODAL OVERLAY (HIDDEN BY DEFAULT)
+     ========================================== -->
+<div id="disease-modal" class="disease-modal-overlay" style="display: none;">
+    <div class="disease-modal-content">
+        <div class="modal-header">
+            <h2 id="modal-title">Crop — Disease</h2>
+            <button id="close-modal-btn" class="close-modal-btn" title="Close report">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p class="modal-overview" id="modal-overview"></p>
+            
+            <div class="modal-section">
+                <h4>🦠 Causes</h4>
+                <p id="modal-causes"></p>
+            </div>
+            
+            <div class="modal-section">
+                <h4>🔍 Symptoms</h4>
+                <p id="modal-symptoms"></p>
+            </div>
+            
+            <div class="modal-section">
+                <h4>🌿 Organic Remediations</h4>
+                <p id="modal-organic" style="color: #4ade80;"></p>
+            </div>
+            
+            <div class="modal-section">
+                <h4>🧪 Chemical Treatments</h4>
+                <p id="modal-chemical" style="color: #60a5fa;"></p>
+            </div>
+            
+            <div class="modal-section">
+                <h4>🛡️ Preventative Guidelines</h4>
+                <p id="modal-prevention"></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- CLIENT-SIDE SEARCH & MODAL CONTROL -->
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const searchInput = document.getElementById("library-search");
+        const cards = document.querySelectorAll(".disease-card");
+        
+        const modal = document.getElementById("disease-modal");
+        const modalTitle = document.getElementById("modal-title");
+        const modalOverview = document.getElementById("modal-overview");
+        const modalCauses = document.getElementById("modal-causes");
+        const modalSymptoms = document.getElementById("modal-symptoms");
+        const modalOrganic = document.getElementById("modal-organic");
+        const modalChemical = document.getElementById("modal-chemical");
+        const modalPrevention = document.getElementById("modal-prevention");
+        const closeModalBtn = document.getElementById("close-modal-btn");
+
+        // 1. Instantly filter cards by search text
+        if (searchInput) {
+            searchInput.addEventListener("input", (e) => {
+                const query = e.target.value.toLowerCase().trim();
+                
+                cards.forEach(card => {
+                    const crop = card.getAttribute("data-crop").toLowerCase();
+                    const disease = card.getAttribute("data-disease-name").toLowerCase();
+                    const symptoms = card.getAttribute("data-symptoms").toLowerCase();
+                    const overview = card.getAttribute("data-overview").toLowerCase();
+                    
+                    if (crop.includes(query) || disease.includes(query) || symptoms.includes(query) || overview.includes(query)) {
+                        card.style.display = "flex";
+                    } else {
+                        card.style.display = "none";
+                    }
+                });
+            });
+        }
+
+        // 2. Open overlay modal on card click
+        cards.forEach(card => {
+            card.addEventListener("click", () => {
+                const crop = card.getAttribute("data-crop");
+                const disease = card.getAttribute("data-disease-name");
+                const overview = card.getAttribute("data-overview");
+                const causes = card.getAttribute("data-causes");
+                const symptoms = card.getAttribute("data-symptoms");
+                const organic = card.getAttribute("data-organic");
+                const chemical = card.getAttribute("data-chemical");
+                const prevention = card.getAttribute("data-prevention");
+
+                modalTitle.textContent = `${crop} — ${disease}`;
+                modalOverview.textContent = overview;
+                modalCauses.textContent = causes;
+                modalSymptoms.textContent = symptoms;
+                modalOrganic.textContent = organic;
+                modalChemical.textContent = chemical;
+                modalPrevention.textContent = prevention;
+
+                modal.style.display = "flex";
+            });
+        });
+
+        // 3. Close modal handlers
+        if (closeModalBtn) {
+            closeModalBtn.addEventListener("click", () => {
+                modal.style.display = "none";
+            });
+        }
+
+        if (modal) {
+            modal.addEventListener("click", (e) => {
+                if (e.target === modal) {
+                    modal.style.display = "none";
+                }
+            });
+            
+            // ESC key closes modal
+            document.addEventListener("keydown", (e) => {
+                if (e.key === "Escape" && modal.style.display === "flex") {
+                    modal.style.display = "none";
+                }
+            });
+        }
+    });
+</script>
 {% endblock %}

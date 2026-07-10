@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block title %}Scan History | Plant AI{% endblock %}
+{% block header_title %}Leaf Diagnostics History Logs{% endblock %}
+{% block header_subtitle %}Review all past scans, verification checks, and agronomist reports{% endblock %}
+
+{% block content %}
+<div class="history-page">
+    {% if not scans %}
+    <div class="result-card"
+        style="text-align: center; max-width: 500px; margin: 40px auto; border-color: rgba(255,255,255,0.05);">
+        <div style="font-size: 3rem; margin-bottom: 12px;">📁</div>
+        <h3>No Scans Logged Yet</h3>
+        <p style="margin-bottom: 20px; color: #94a3b8;">You haven't run any leaf scans yet. Analyze your first plant
+            leaf from the Home dashboard.</p>
+        <a href="{{ url_for('home') }}" class="btn-primary">
+            Scan Leaf Now
+        </a>
+    </div>
+    {% else %}
+    <div class="history-grid">
+        {% for scan in scans %}
+        <div class="history-card" id="scan-card-{{ scan.id }}">
+            <div class="card-thumb-wrapper">
+                <img src="{{ url_for('static', filename='uploads/' ~ scan.filename) }}" alt="Scan Thumbnail"
+                    class="card-thumb">
+                <span
+                    class="badge {{ 'badge-success' if scan.verification_status == 'AGREEMENT' else ('badge-warning' if scan.verification_status == 'CNN ONLY' else 'badge-danger') }}">
+                    {{ scan.verification_status }}
+                </span>
+            </div>
+
+            <div class="card-details">
+                <h4>{{ scan.cnn_predicted_crop }}</h4>
+                <p class="disease-meta">Diagnosis: <strong>{{ scan.gemini_predicted_disease }}</strong></p>
+
+                <div class="meta-row">
+                    <span>Confidence:</span>
+                    <strong>{{ scan.confidence }}%</strong>
+                </div>
+
+                <div class="meta-row date-row">
+                    <span>Date Logged:</span>
+                    <span class="date">{{ scan.created_at }}</span>
+                </div>
+
+                <div class="card-actions">
+                    <a href="/predict/result/{{ scan.filename }}" class="btn-primary btn-sm">
+                        View Report
+                    </a>
+                    <button onclick="deleteScan({{ scan.id }})" class="btn-secondary btn-sm delete-btn"
+                        title="Delete Log">
+                        🗑️ Delete
+                    </button>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+
+<!-- Delete Javascript helper -->
+<script>
+    function deleteScan(scanId) {
+        if (!confirm("Are you sure you want to permanently delete this scan log?")) return;
+
+        fetch(`/api/history/delete/${scanId}`, {
+            method: "POST"
+        })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    const card = document.getElementById(`scan-card-${scanId}`);
+                    if (card) {
+                        card.style.opacity = "0";
+                        card.style.transform = "scale(0.9)";
+                        setTimeout(() => {
+                            card.remove();
+                            // Reload page if no cards left
+                            if (document.querySelectorAll(".history-card").length === 0) {
+                                window.location.reload();
+                            }
+                        }, 300);
+                    }
+                }
+            })
+            .catch(err => {
+                console.error("Delete failed:", err);
+                alert("Error deleting scan log.");
+            });
+    }
+</script>
+
+{% endblock %}
