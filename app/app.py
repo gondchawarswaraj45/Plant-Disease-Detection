@@ -61,29 +61,43 @@ def preprocess_image(img_path):
 # =========================
 
 @app.route("/")
-def home():
-    return render_template("home.html")
-
-
+@app.route("/login")
+@app.route("/dashboard")
 @app.route("/about")
-def about():
-    return render_template("about.html")
-
-
 @app.route("/diseases")
-def diseases():
-    # Load from SQLite database to provide a rich list of seeded diseases
+@app.route("/chat")
+@app.route("/history")
+@app.route("/soil")
+@app.route("/watering")
+@app.route("/predict/result/<report_id>")
+def spa_entry(report_id=None):
+    return render_template("index.html")
+
+
+# =========================
+# JSON REST API ENDPOINTS
+# =========================
+
+@app.route("/api/diseases")
+def api_diseases():
     conn = database.get_db_connection()
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM diseases")
     seeded_diseases = cursor.fetchall()
     conn.close()
-    return render_template("diseases.html", diseases=seeded_diseases)
+    return jsonify([dict(row) for row in seeded_diseases])
 
 
-@app.route("/chat")
-def chat():
-    return render_template("chat.html")
+@app.route("/api/history")
+def api_history():
+    scans = database.get_scans()
+    return jsonify([dict(row) for row in scans])
+
+
+@app.route("/api/history/delete/<int:scan_id>", methods=["POST"])
+def api_history_delete(scan_id):
+    database.delete_scan(scan_id)
+    return jsonify({"success": True})
 
 
 @app.route("/api/chat", methods=["POST"])
@@ -106,6 +120,63 @@ def api_chat():
 
     bot_response = chat_with_doctor(message=message, history=history, image_path=image_path)
     return jsonify({"response": bot_response})
+
+
+@app.route("/api/soil", methods=["GET", "POST"])
+def api_soil():
+    if request.method == "POST":
+        try:
+            data = request.get_json() or {}
+            crop_type = data.get("crop_type", "General")
+            soil_type = data.get("soil_type", "Loam")
+            ph = float(data.get("ph_level", 7.0))
+            moisture = data.get("moisture_level", "Medium")
+            
+            # Diagnostics logic (Rules engine)
+            verdict = ""
+            recs = []
+            
+            # pH evaluations
+            if ph < 5.5:
+                verdict = "Highly Acidic 🔴"
+                recs.append("Apply agricultural lime (calcium carbonate) to raise pH.")
+                recs.append("Avoid acidic fertilizers like ammonium sulfate.")
+            elif ph > 7.5:
+                verdict = "Alkaline 🔴"
+                recs.append("Apply elemental sulfur or organic compost to lower soil pH.")
+                recs.append("Use ammonium fertilizers to slowly lower soil pH over time.")
+            else:
+                verdict = "Optimal pH range (5.5 - 7.5) 🟢"
+                recs.append("Soil acidity is excellent for most crops. Maintain compost nutrition.")
+                
+            # Moisture & Soil match evaluations
+            if soil_type == "Sandy" and moisture == "Low":
+                recs.append("Sandy soil has poor water retention. Implement mulching and increase compost to build humus.")
+            elif soil_type == "Clay" and moisture == "High":
+                recs.append("Clay soil holds water easily but lacks drainage. Aerate the soil and mix in gypsum/sand to avoid root rot.")
+                
+            # Crop specific checklist
+            if crop_type == "Potato" and ph > 6.0:
+                recs.append("Potatoes prefer slightly acidic soil (5.0 - 5.5). High pH increases the risk of Potato Scab disease.")
+            elif crop_type == "Tomato" and ph < 6.0:
+                recs.append("Tomatoes prefer a pH of 6.2 - 6.8. Low pH limits calcium intake, risking Blossom End Rot.")
+                
+            recs_str = "\n".join([f"- {r}" for r in recs])
+            database.add_soil_report(crop_type, soil_type, ph, moisture, verdict, recs_str)
+            
+            return jsonify({
+                "crop_type": crop_type,
+                "soil_type": soil_type,
+                "ph": ph,
+                "moisture": moisture,
+                "verdict": verdict,
+                "recommendations": recs
+            })
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+            
+    reports = database.get_soil_reports()
+    return jsonify([dict(row) for row in reports])
 
 
 # =========================
@@ -184,13 +255,13 @@ def run_dual_analysis(file_path, filename):
     }
 
 
-@app.route("/predict", methods=["POST"])
-def predict():
+@app.route("/api/predict", methods=["POST"])
+def api_predict():
     if "image" not in request.files:
-        return render_template("result.html", error="No image uploaded ❗")
+        return jsonify({"error": "No image uploaded"}), 400
     file = request.files["image"]
     if file.filename == "":
-        return render_template("result.html", error="No image selected ❗")
+        return jsonify({"error": "No image selected"}), 400
 
     # Save leaf photo
     file_ext = os.path.splitext(file.filename)[1]
@@ -200,9 +271,9 @@ def predict():
 
     try:
         report = run_dual_analysis(file_path, unique_filename)
-        return render_template("result.html", **report)
+        return jsonify(report)
     except Exception as e:
-        return render_template("result.html", error=f"Analysis failed: {str(e)}")
+        return jsonify({"error": f"Analysis failed: {str(e)}"}), 500
 
 
 @app.route("/api/camera-upload", methods=["POST"])
@@ -222,14 +293,17 @@ def camera_upload():
             f.write(image_bytes)
             
         report = run_dual_analysis(file_path, unique_filename)
-        return jsonify({"redirect": url_for("predict_result_render", report_id=unique_filename)})
+        return jsonify({
+            "report": report,
+            "redirect": url_for("spa_entry", report_id=unique_filename)
+        })
     except Exception as e:
         print("Camera processing failure:", e)
         return jsonify({"error": str(e)}), 500
 
 
-@app.route("/predict/result/<report_id>")
-def predict_result_render(report_id):
+@app.route("/api/predict/result/<report_id>")
+def api_predict_result(report_id):
     # Fetch scan from database log
     conn = database.get_db_connection()
     cursor = conn.cursor()
@@ -238,11 +312,9 @@ def predict_result_render(report_id):
     conn.close()
     
     if not scan:
-        return render_template("result.html", error="Scan result not found.")
+        return jsonify({"error": "Scan result not found."}), 404
         
-    # Re-retrieve or fake Gemini report
-    # Since we save predictions in scans, we can read directly
-    fallback_report = {
+    report = {
         "image": scan["filename"],
         "disease": scan["cnn_predicted_crop"],
         "confidence": scan["confidence"],
@@ -264,86 +336,7 @@ We successfully reloaded this scan from your **Scan Log**.
         "verification_class": "verify-success" if scan["verification_status"] == "AGREEMENT" else ("verify-warning" if scan["verification_status"] == "CNN ONLY" else "verify-danger"),
         "verification_message": scan["verification_message"]
     }
-    return render_template("result.html", **fallback_report)
-
-
-# =========================
-# SCAN HISTORY MANAGEMENT
-# =========================
-@app.route("/history")
-def history():
-    scans = database.get_scans()
-    return render_template("history.html", scans=scans)
-
-
-@app.route("/api/history/delete/<int:scan_id>", methods=["POST"])
-def api_history_delete(scan_id):
-    database.delete_scan(scan_id)
-    return jsonify({"success": True})
-
-
-# =========================
-# DYNAMIC SOIL ANALYZER
-# =========================
-@app.route("/soil", methods=["GET", "POST"])
-def soil():
-    if request.method == "POST":
-        crop_type = request.form.get("crop_type", "General")
-        soil_type = request.form.get("soil_type", "Loam")
-        ph = float(request.form.get("ph_level", 7.0))
-        moisture = request.form.get("moisture_level", "Medium")
-        
-        # Diagnostics logic (Rules engine)
-        verdict = ""
-        recs = []
-        
-        # pH evaluations
-        if ph < 5.5:
-            verdict = "Highly Acidic 🔴"
-            recs.append("Apply agricultural lime (calcium carbonate) to raise pH.")
-            recs.append("Avoid acidic fertilizers like ammonium sulfate.")
-        elif ph > 7.5:
-            verdict = "Alkaline 🔴"
-            recs.append("Apply elemental sulfur or organic compost to lower soil pH.")
-            recs.append("Use ammonium fertilizers to slowly lower soil pH over time.")
-        else:
-            verdict = "Optimal pH range (5.5 - 7.5) 🟢"
-            recs.append("Soil acidity is excellent for most crops. Maintain compost nutrition.")
-            
-        # Moisture & Soil match evaluations
-        if soil_type == "Sandy" and moisture == "Low":
-            recs.append("Sandy soil has poor water retention. Implement mulching and increase compost to build humus.")
-        elif soil_type == "Clay" and moisture == "High":
-            recs.append("Clay soil holds water easily but lacks drainage. Aerate the soil and mix in gypsum/sand to avoid root rot.")
-            
-        # Crop specific checklist
-        if crop_type == "Potato" and ph > 6.0:
-            recs.append("Potatoes prefer slightly acidic soil (5.0 - 5.5). High pH increases the risk of Potato Scab disease.")
-        elif crop_type == "Tomato" and ph < 6.0:
-            recs.append("Tomatoes prefer a pH of 6.2 - 6.8. Low pH limits calcium intake, risking Blossom End Rot.")
-            
-        recs_str = "\n".join([f"- {r}" for r in recs])
-        database.add_soil_report(crop_type, soil_type, ph, moisture, verdict, recs_str)
-        
-        return render_template("soil.html", result={
-            "crop_type": crop_type,
-            "soil_type": soil_type,
-            "ph": ph,
-            "moisture": moisture,
-            "verdict": verdict,
-            "recommendations": recs
-        })
-        
-    reports = database.get_soil_reports()
-    return render_template("soil.html", reports=reports)
-
-
-# =========================
-# WATERING PLANNER
-# =========================
-@app.route("/watering")
-def watering():
-    return render_template("watering.html")
+    return jsonify(report)
 
 
 if __name__ == "__main__":
