@@ -69,3 +69,6 @@ Plant-Disease-Detection/
 ```bash
 git clone https://github.com/your-username/Plant-Disease-Detection.git
 cd Plant-Disease-Detection
+```
+---
+### :- SWARAJ GONDCHAWAR
